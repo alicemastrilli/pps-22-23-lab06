@@ -1,5 +1,7 @@
 package u06lab.code
 
+import java.util
+
 /** 1) Implement trait Functions with an object FunctionsImpl such that the code in TryFunctions works correctly. */
 
 trait Functions:
@@ -8,9 +10,17 @@ trait Functions:
   def max(a: List[Int]): Int // gives Int.MinValue if a is empty
 
 object FunctionsImpl extends Functions:
-  override def sum(a: List[Double]): Double = ???
-  override def concat(a: Seq[String]): String = ???
-  override def max(a: List[Int]): Int = ???
+  def combiner[A](a: Iterable[A])(using c: Combiner[A]): A =
+    a.foldRight(c.unit)(c.combine)
+
+  override def sum(a: List[Double]): Double =
+    combiner(a)(using Sum)
+  override def concat(a: Seq[String]): String = a match
+    case Seq() => ""
+    case _ => a.reduce((s1, s2) => s1+s2)
+  override def max(a: List[Int]): Int = a match
+    case Nil => Int.MinValue
+    case _ => a.max
 
 /*
  * 2) To apply DRY principle at the best,
@@ -29,6 +39,19 @@ trait Combiner[A]:
   def unit: A
   def combine(a: A, b: A): A
 
+object Sum extends Combiner[Double]:
+  override def unit: Double = 0.0
+  override def combine(a: Double, b: Double): Double = a+b
+
+object Concat extends Combiner[String]:
+  override def unit: String = ""
+
+  override def combine(a: String, b: String): String = a+b
+
+object Max extends Combiner[Int]:
+  override def unit: Int = 0
+
+  override def combine(a: Int, b: Int): Int = Math.max(a,b)
 @main def checkFunctions(): Unit =
   val f: Functions = FunctionsImpl
   println(f.sum(List(10.0, 20.0, 30.1))) // 60.1
