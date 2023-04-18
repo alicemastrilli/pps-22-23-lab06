@@ -15,12 +15,10 @@ object FunctionsImpl extends Functions:
 
   override def sum(a: List[Double]): Double =
     combiner(a)(using Sum)
-  override def concat(a: Seq[String]): String = a match
-    case Seq() => ""
-    case _ => a.reduce((s1, s2) => s1+s2)
-  override def max(a: List[Int]): Int = a match
-    case Nil => Int.MinValue
-    case _ => a.max
+  override def concat(a: Seq[String]): String =
+    combiner(a)(using Concat)
+  override def max(a: List[Int]): Int =
+    combiner(a)(using Max)
 
 /*
  * 2) To apply DRY principle at the best,
@@ -49,7 +47,7 @@ object Concat extends Combiner[String]:
   override def combine(a: String, b: String): String = a+b
 
 object Max extends Combiner[Int]:
-  override def unit: Int = 0
+  override def unit: Int = Int.MinValue
 
   override def combine(a: Int, b: Int): Int = Math.max(a,b)
 @main def checkFunctions(): Unit =
